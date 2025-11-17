@@ -35,9 +35,7 @@ services:
       - postgres
       - redis
     ports:
-      - "8000:8000"                # Expose for frontend → backend calls; lock via security group
-    volumes:
-      - ./app:/app                 # optional for dev; remove in production
+      - "8000:8000"
     networks:
       - backend-net
     restart: always
@@ -53,7 +51,6 @@ services:
       - postgres
       - redis
     volumes:
-      - ./app:/app
       - ./terraform_templates:/backend/terraform_templates
       - ./modules:/backend/modules
     networks:

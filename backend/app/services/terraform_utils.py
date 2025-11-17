@@ -42,7 +42,7 @@ def generate_root_terraform_files(device_id: str, instance_name: str, path: str)
     # Path from terraform_templates/<id> → modules/ec2
     # backend/terraform_templates/<id>
     # backend/modules/ec2
-    module_path = "../../backend/modules/ec2"
+    module_path = "file:///backend/modules/ec2"
 
     # ---------------------------------------------
     # main.tf

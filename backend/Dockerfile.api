@@ -1,14 +1,22 @@
 FROM python:3.12-slim
 
-WORKDIR /app
+# Create backend working directory
+WORKDIR /backend
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev curl unzip && rm -rf /var/lib/apt/lists/*
+# Install dependencies
+COPY requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# Copy backend code
+COPY . /backend
 
-# FIXED
-COPY app /app
+# Set import root
+ENV PYTHONPATH="/backend"
+
+# Copy environment variables into container
+COPY .env /backend/.env
+
+# API code lives in /backend/app
+WORKDIR /backend/app
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
