@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    container_name: fastapi-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app/backend
+
+  worker:
+    build: .
+    container_name: terraform-worker
+    command: python backend/app/worker.py
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app/backend
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"

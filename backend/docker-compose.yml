@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: infra_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: infra_redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    networks:
+      - backend-net
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: infra_api
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8000:8000"                # Expose for frontend → backend calls; lock via security group
+    volumes:
+      - ./app:/app                 # optional for dev; remove in production
+    networks:
+      - backend-net
+    restart: always
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: infra_worker
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./app:/app
+      - ./terraform_templates:/backend/terraform_templates
+      - ./modules:/backend/modules
+    networks:
+      - backend-net
+    restart: always
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  backend-net:
+    driver: bridge
