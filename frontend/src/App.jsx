@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 
-// Backend URL (from Vite env or default localhost)
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// Backend URL from Vite environment
+// Example: http://backend:8000/api
+const API_URL = import.meta.env.VITE_API_URL;
+console.log("API_URL =", API_URL);
 
 function App() {
   const [status, setStatus] = useState("");
@@ -10,7 +12,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [instanceInfo, setInstanceInfo] = useState(null);
 
-  // Call backend API
   const callAPI = async (endpoint) => {
     if (!user || !device) {
       setStatus("⚠️ Please enter both User and Device ID!");
@@ -18,14 +19,22 @@ function App() {
     }
 
     setLoading(true);
-    setStatus(`${endpoint === "create-server" ? "Creating" : "Destroying"} server...`);
+    setStatus(
+      endpoint === "create-server"
+        ? "Creating server..."
+        : "Destroying server..."
+    );
     setInstanceInfo(null);
 
     try {
       const res = await fetch(`${API_URL}/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user, device_id: device, instance_name: `${user}-${device}` }),
+        body: JSON.stringify({
+          user,
+          device_id: device,
+          instance_name: `${user}-${device}`,
+        }),
       });
 
       const data = await res.json();
@@ -33,7 +42,6 @@ function App() {
       if (res.ok) {
         setStatus(`✅ ${data.message}`);
 
-        // Check if backend returned outputs (Terraform outputs)
         if (data.outputs) {
           setInstanceInfo({
             id: data.outputs.ec2_instance_id?.value,
@@ -44,7 +52,6 @@ function App() {
           });
         }
       } else {
-        // Show backend errors cleanly
         const errorMsg =
           typeof data.detail === "object"
             ? JSON.stringify(data.detail, null, 2)
@@ -59,8 +66,14 @@ function App() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px", fontFamily: "Arial, sans-serif" }}>
-      <h1>🚀 CosmicGen AWS Server Manager</h1>
+    <div
+      style={{
+        textAlign: "center",
+        marginTop: "50px",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
+      <h1>🚀 BlitzTest AWS Server Manager</h1>
 
       <div style={{ marginBottom: "20px" }}>
         <input
@@ -85,6 +98,7 @@ function App() {
         >
           Create Server
         </button>
+
         <button
           onClick={() => callAPI("destroy-server")}
           disabled={loading}
@@ -104,7 +118,14 @@ function App() {
       </div>
 
       {instanceInfo && (
-        <div style={{ marginTop: "20px", color: "green", textAlign: "left", display: "inline-block" }}>
+        <div
+          style={{
+            marginTop: "20px",
+            color: "green",
+            textAlign: "left",
+            display: "inline-block",
+          }}
+        >
           <h3>Instance Details:</h3>
           <p><strong>Instance ID:</strong> {instanceInfo.id}</p>
           <p><strong>Public IP:</strong> {instanceInfo.ip}</p>

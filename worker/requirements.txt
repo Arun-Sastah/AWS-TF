@@ -1,0 +1,6 @@
+redis
+rq
+python-dotenv
+boto3
+asyncpg
+sqlalchemy
