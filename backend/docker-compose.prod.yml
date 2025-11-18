@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+
+  redis:
+    image: redis:7
+    container_name: prod_redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    networks:
+      - backend_net
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prod_api
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+    expose:
+      - "8000"          # private only
+    networks:
+      - backend_net
+    restart: always
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: prod_worker
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+    networks:
+      - backend_net
+    restart: always
+
+volumes:
+  redisdata:
+
+networks:
+  backend_net:
+    driver: bridge

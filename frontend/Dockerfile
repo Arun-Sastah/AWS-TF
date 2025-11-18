@@ -1,11 +1,13 @@
-# Step 1: Use an Nginx image to serve the React app
+# Build Stage
+FROM node:18 AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Serve Stage
 FROM nginx:alpine
-
-# Step 2: Copy the build files into the Nginx container
-COPY dist/ /usr/share/nginx/html
-
-# Step 3: Expose port 80
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
-
-# Step 4: Run Nginx
-CMD ["nginx", "-g", "daemon off;"]
